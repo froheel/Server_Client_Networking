@@ -1,6 +1,6 @@
 import socket
 import json
-
+import wave
 
 def send_data(jsonfilename, client, clientinput, state):
     # sending input to server (ie DISCONNECT)
@@ -17,6 +17,17 @@ def send_data(jsonfilename, client, clientinput, state):
     in_data = client.recv(1024)
     print("From Server :", in_data.decode())
 
+
+def send_wav_data(wavfilename, client, clientinput):
+    # sending input to server (ie DISCONNECT)
+    client.sendall(bytes(clientinput, 'UTF-8'))
+
+    # loading and sending from wav file
+    with open('output.wav', 'rb') as f:
+        for l in f:
+            client.sendall(l)
+        f.close()
+        client.close()
 
 def client_receive(client,clientinput):
     # sending client input
@@ -50,9 +61,14 @@ def close_NLP(client):
 if __name__ == '__main__':
     client = init_NLP()
     while True:
-        out_data= input()
-        if out_data=='SEND':
+        out_data= input("Input your choice: ")
+        out_data= out_data.upper()
+        if out_data == 'SEND_JSON':
             send_data('data.json', client, out_data, 'IDLE')
+        elif out_data == 'SEND_WAV':
+            send_wav_data('output.wav', client, out_data)
+            client = init_NLP()
+            print("wav file data sent")
         elif out_data == 'DISCONNECT':
             send_message('DISCONNECT')
             close_NLP(client)

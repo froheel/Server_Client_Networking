@@ -1,7 +1,7 @@
 import socket
 import threading
 import json
-
+import wave
 
 class ClientThread(threading.Thread):
     def __init__(self,clientAddress,clientsocket):
@@ -19,13 +19,23 @@ class ClientThread(threading.Thread):
             client_message = client_message.decode()
             if client_message == 'DISCONNECT':
                 break
-            elif client_message== 'SEND':
+            elif client_message == 'SEND_JSON':
                 # server receive
                 data = self.csocket.recv(2048)
                 print ("data from client", data)
                 state= self.csocket.recv(2048)
                 print("state from client", state)
                 self.csocket.send(bytes(msg, 'UTF-8'))
+            elif client_message == 'SEND_WAV':
+                # server receives wav file
+                with open('rcvd_file.wav', 'wb') as f:
+                    while True:
+                        l = self.csocket.recv(2048);
+                        if not l : break
+                        f.write(l)
+                    print("Wav file received")
+                    f.close()
+
             elif client_message=='RECEIVE':
                 # loading data from file and reading state
                 state= 'THINKING'
