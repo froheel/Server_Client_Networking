@@ -23,13 +23,11 @@ def send_wav_data(wavfilename, client, clientinput):
     client.sendall(bytes(clientinput, 'UTF-8'))
 
     # loading and sending from wav file
-    statu = 'end'
-    client.sendall(bytes(statu, 'UTF-8'))
-    # with open('output.wav', 'rb') as f:
-    #     for l in f:
-    #         client.sendall(l)
-    #     f.close()
-    #client.close()
+    with open('output.wav', 'rb') as f:
+        for l in f:
+            client.sendall(l)
+        f.close()
+        client.sendall(bytes('end', 'UTF-8'))
 
 def client_receive(client,clientinput):
     # sending client input
@@ -69,7 +67,6 @@ if __name__ == '__main__':
             send_data('data.json', client, out_data, 'IDLE')
         elif out_data == 'SEND_WAV':
             send_wav_data('output.wav', client, out_data)
-            #client = init_NLP()
             print("wav file data sent")
         elif out_data == 'DISCONNECT':
             send_message('DISCONNECT')
