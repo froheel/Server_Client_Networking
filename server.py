@@ -3,16 +3,14 @@ import threading
 import json
 import wave
 
-
 class ClientThread(threading.Thread):
-    def __init__(self, clientAddress, clientsocket):
+    def __init__(self,clientAddress,clientsocket):
         threading.Thread.__init__(self)
         self.csocket = clientsocket
-        self.caddress = clientAddress
-        print("New connection added: ", clientAddress)
-
+        self.caddress=clientAddress
+        print ("New connection added: ", clientAddress)
     def run(self):
-        print("Connection from : ", self.caddress)
+        print ("Connection from : ", self.caddress)
         msg = 'transferred'
         while True:
 
@@ -24,8 +22,8 @@ class ClientThread(threading.Thread):
             elif client_message == 'SEND_JSON':
                 # server receive
                 data = self.csocket.recv(2048)
-                print("data from client", data)
-                state = self.csocket.recv(2048)
+                print ("data from client", data)
+                state= self.csocket.recv(2048)
                 print("state from client", state)
                 self.csocket.send(bytes(msg, 'UTF-8'))
             elif client_message == 'SEND_WAV':
@@ -33,15 +31,14 @@ class ClientThread(threading.Thread):
                 with open('rcvd_file.wav', 'wb') as f:
                     while True:
                         l = self.csocket.recv(2048);
-                        print(l)
-                        if l == bytes('end','UTF-8' ): break
+                        if l == bytes('end', 'UTF-8') : break
                         f.write(l)
                     print("Wav file received")
                     f.close()
 
-            elif client_message == 'RECEIVE':
+            elif client_message=='RECEIVE':
                 # loading data from file and reading state
-                state = 'THINKING'
+                state= 'THINKING'
                 data = json.load(open('data.json'))
                 # sending state and json data
                 self.csocket.send(bytes(json.dumps(data), 'UTF-8'))
@@ -50,7 +47,15 @@ class ClientThread(threading.Thread):
                 in_data = self.csocket.recv(2048)
                 print("From Client ", self.caddress, " : ", in_data.decode())
 
-        print("Client at ", self.caddress, " disconnected...")
+            elif client_message=="BLENDER":
+                while True:
+                    # send updated state
+                    inp = input("Enter state")
+                    # send state to the client
+                    self.csocket.sendall((int(inp).to_bytes(2, byteorder='big')))
+
+
+        print ("Client at ", self.caddress, " disconnected...")
 
 
 def init_server():
