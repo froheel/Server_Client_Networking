@@ -47,6 +47,14 @@ class ClientThread(threading.Thread):
                 in_data = self.csocket.recv(2048)
                 print("From Client ", self.caddress, " : ", in_data.decode())
 
+            elif client_message=="BLENDER":
+                while True:
+                    # send updated state
+                    inp = input("Enter state")
+                    # send state to the client
+                    self.csocket.sendall((int(inp).to_bytes(2, byteorder='big')))
+
+
         print ("Client at ", self.caddress, " disconnected...")
 
 
