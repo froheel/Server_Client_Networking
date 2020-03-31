@@ -31,7 +31,7 @@ class ClientThread(threading.Thread):
                 with open('rcvd_file.wav', 'wb') as f:
                     while True:
                         l = self.csocket.recv(2048);
-                        if not l : break
+                        if l == bytes('end', 'UTF-8') : break
                         f.write(l)
                     print("Wav file received")
                     f.close()
