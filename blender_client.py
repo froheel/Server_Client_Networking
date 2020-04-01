@@ -92,7 +92,8 @@ if __name__ == '__main__':
     # To get state from server without blocking the main program
     newthread = ClientThread(client)
     newthread.start()
-
+    user_input = input("hello there: ")
+    client.sendall(bytes(user_input, "UTF-8"))
     while True:
         if current_state == 0:
             print("Idle State")

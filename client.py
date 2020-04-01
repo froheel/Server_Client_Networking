@@ -1,19 +1,26 @@
 import socket
 import json
 import wave
+from threading import Thread, Condition
+
+wait = False
+
+out_data = ''
+
 
 def send_data(jsonfilename, client, clientinput, state):
     # sending input to server (ie DISCONNECT)
     client.sendall(bytes(clientinput, 'UTF-8'))
 
     # loading data from file
-    data=json.load(open(jsonfilename))
+    data = json.load(open(jsonfilename))
 
     # sending state and json data
     client.send(bytes(json.dumps(data), 'UTF-8'))
     client.sendall(bytes(state, 'UTF-8'))
 
     # receiving confirmation that data has been sent
+    print('here')
     in_data = client.recv(1024)
     print("From Server :", in_data.decode())
 
@@ -29,10 +36,11 @@ def send_wav_data(wavfilename, client, clientinput):
         f.close()
         client.sendall(bytes('end', 'UTF-8'))
 
-def client_receive(client,clientinput):
+
+def client_receive(client, clientinput):
     # sending client input
     client.sendall(bytes(clientinput, 'UTF-8'))
-    msg= 'received'
+    msg = 'received'
     # receiving data and state from server
     data = client.recv(1024)
     print("data from client", data)
@@ -42,8 +50,23 @@ def client_receive(client,clientinput):
     client.send(bytes(msg, 'UTF-8'))
     return data, state
 
+
 def send_message(input_msg):
     client.sendall(bytes(input_msg, 'UTF-8'))
+
+
+def receive_signal(client):
+    global out_data
+    global wait
+    while True:
+
+        data = client.recv(1025)
+
+        out_data = data.decode()
+        if out_data == 'WAIT':
+            wait = True
+        else:
+            wait = False
 
 
 def init_NLP():
@@ -54,17 +77,23 @@ def init_NLP():
     client.connect((SERVER, PORT))
     return client
 
+
 def close_NLP(client):
     client.close()
 
 
 if __name__ == '__main__':
     client = init_NLP()
+
+    signaling = Thread(target=receive_signal, args=(client,))
+    signaling.start()
+    out_data = input("Input your choice: ")
+    out_data = out_data.upper()
     while True:
-        out_data= input("Input your choice: ")
-        out_data= out_data.upper()
+        print(out_data)
         if out_data == 'SEND_JSON':
             send_data('data.json', client, out_data, 'IDLE')
+            print("here")
         elif out_data == 'SEND_WAV':
             send_wav_data('output.wav', client, out_data)
             print("wav file data sent")
@@ -72,5 +101,14 @@ if __name__ == '__main__':
             send_message('DISCONNECT')
             close_NLP(client)
             break
-        elif out_data=='RECEIVE':
+        elif out_data == 'UPDATE_STATE':
+            inp = input("Enter state")
+            # send state to the client
+            send_message('Update_State')
+            client.sendall((int(inp).to_bytes(2, byteorder='big')))
+        elif out_data == 'RECEIVE':
             data, state = client_receive(client, out_data)
+        elif out_data == 'WAIT':
+            while wait:
+                print("hello")
+
