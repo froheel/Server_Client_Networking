@@ -52,8 +52,8 @@ def send_message(input_msg):
 
 def init_NLP():
     # establishing connection
-    SERVER = "127.0.0.1"
-    PORT = 8080
+    SERVER = "89.33.205.183"
+    PORT = 10005
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((SERVER, PORT))
     return client
@@ -81,6 +81,12 @@ class ClientThread(threading.Thread):
 #state 3 ---> Speaking
 
 
+def start_nlp(client):
+    while True:
+        input("press enter to start nlp")
+        client.sendall(bytes('start'))
+
+
 #main program
 if __name__ == '__main__':
 
@@ -92,16 +98,25 @@ if __name__ == '__main__':
     # To get state from server without blocking the main program
     newthread = ClientThread(client)
     newthread.start()
-    user_input = input("hello there: ")
-    client.sendall(bytes(user_input, "UTF-8"))
+    nlp_control = threading.Thread(target=start_nlp, args=(client, ))
     while True:
         if current_state == 0:
-            print("Idle State")
+            #print("Idle State")
+            #do something
+            a = 0
         elif current_state == 1:
-            print("Listening State")
+            #print("Listening State")
+            # do something
+            a = 0
         elif current_state == 2:
-            print("Thinking State")
+            #print("Thinking State")
+            # do something
+            a = 0
         elif current_state == 3:
-            print("Speaking State")
+            #print("Speaking State")
+            # do something
+            a = 0
         else:
-            print("Invalid State")
+            #print("Invalid State")
+            # do something
+            a = 0

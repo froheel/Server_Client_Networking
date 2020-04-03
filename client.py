@@ -1,7 +1,8 @@
 import socket
 import json
 import wave
-from threading import Thread, Condition
+from threading import Thread, Event
+
 
 wait = False
 
@@ -55,41 +56,11 @@ def send_message(input_msg):
     client.sendall(bytes(input_msg, 'UTF-8'))
 
 
-def receive_signal(client):
-    global out_data
-    global wait
+def main_job(e):
     while True:
-
-        data = client.recv(1025)
-
-        out_data = data.decode()
-        if out_data == 'WAIT':
-            wait = True
-        else:
-            wait = False
-
-
-def init_NLP():
-    # establishing connection
-    SERVER = "127.0.0.1"
-    PORT = 8080
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect((SERVER, PORT))
-    return client
-
-
-def close_NLP(client):
-    client.close()
-
-
-if __name__ == '__main__':
-    client = init_NLP()
-
-    signaling = Thread(target=receive_signal, args=(client,))
-    signaling.start()
-    out_data = input("Input your choice: ")
-    out_data = out_data.upper()
-    while True:
+        event_is_set = e.wait()
+        out_data = input("Input your choice: ")
+        out_data = out_data.upper()
         print(out_data)
         if out_data == 'SEND_JSON':
             send_data('data.json', client, out_data, 'IDLE')
@@ -108,7 +79,32 @@ if __name__ == '__main__':
             client.sendall((int(inp).to_bytes(2, byteorder='big')))
         elif out_data == 'RECEIVE':
             data, state = client_receive(client, out_data)
-        elif out_data == 'WAIT':
-            while wait:
-                print("hello")
+        e.clear()
 
+
+def init_NLP():
+    # establishing connection
+    SERVER = "89.33.205.183"
+    PORT = 10005
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect((SERVER, PORT))
+    return client
+
+
+def close_NLP(client):
+    client.close()
+
+
+if __name__ == '__main__':
+    client = init_NLP()
+    e = Event()
+    work = Thread(target=main_job, args=(e,))
+    work.start()
+
+    while True:
+
+        data = client.recv(1025)
+
+        blender_input = data.decode()
+        if blender_input.upper() == 'START':
+            e.set()

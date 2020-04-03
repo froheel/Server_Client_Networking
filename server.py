@@ -139,7 +139,7 @@ class blenderThreadlisten(threading.Thread):
 
 def init_server():
     LOCALHOST = "127.0.0.1"
-    PORT = 8080
+    PORT = 10005
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind((LOCALHOST, PORT))
