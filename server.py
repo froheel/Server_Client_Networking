@@ -152,6 +152,7 @@ def init_server():
     blender2 = blenderThreadlisten(clientAddress, clientsock)
     blender.start()
     blender2.start()
+    print("Waiting for client request..")
     server.listen(1)
     clientsock, clientAddress = server.accept()
     nlp = nlpThreadlisten(clientAddress, clientsock)

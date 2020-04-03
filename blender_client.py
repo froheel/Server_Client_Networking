@@ -52,7 +52,7 @@ def send_message(input_msg):
 
 def init_NLP():
     # establishing connection
-    SERVER = "89.33.205.183"
+    SERVER = "127.0.0.1"
     PORT = 10005
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((SERVER, PORT))
@@ -83,8 +83,9 @@ class ClientThread(threading.Thread):
 
 def start_nlp(client):
     while True:
+        print("nlp_Start")
         input("press enter to start nlp")
-        client.sendall(bytes('start'))
+        client.sendall(bytes('start', 'UTF-8'))
 
 
 #main program
@@ -99,6 +100,7 @@ if __name__ == '__main__':
     newthread = ClientThread(client)
     newthread.start()
     nlp_control = threading.Thread(target=start_nlp, args=(client, ))
+    nlp_control.start()
     while True:
         if current_state == 0:
             #print("Idle State")

@@ -84,7 +84,7 @@ def main_job(e):
 
 def init_NLP():
     # establishing connection
-    SERVER = "89.33.205.183"
+    SERVER = "127.0.0.1"
     PORT = 10005
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((SERVER, PORT))
