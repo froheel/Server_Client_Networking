@@ -31,7 +31,7 @@ def send_wav_data(wavfilename, client, clientinput):
     client.sendall(bytes(clientinput, 'UTF-8'))
 
     # loading and sending from wav file
-    with open('output.wav', 'rb') as f:
+    with open(wavfilename, 'rb') as f:
         for l in f:
             client.sendall(l)
         f.close()
@@ -64,7 +64,7 @@ def main_job(e):
         print(out_data)
         if out_data == 'SEND_JSON':
             send_data('data.json', client, out_data, 'IDLE')
-            print("here")
+
         elif out_data == 'SEND_WAV':
             send_wav_data('output.wav', client, out_data)
             print("wav file data sent")
@@ -84,7 +84,7 @@ def main_job(e):
 
 def init_NLP():
     # establishing connection
-    SERVER = "127.0.0.1"
+    SERVER = "101.53.235.104"
     PORT = 10005
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((SERVER, PORT))
