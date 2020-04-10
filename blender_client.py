@@ -52,7 +52,7 @@ def send_message(input_msg):
 
 def init_NLP():
     # establishing connection
-    SERVER = "127.0.0.1"
+    SERVER = "101.53.235.104"
     PORT = 10005
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((SERVER, PORT))
