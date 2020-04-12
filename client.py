@@ -2,11 +2,14 @@ import socket
 import json
 import wave
 from threading import Thread, Event
-
+from time import time
 
 wait = False
 
 out_data = ''
+posture_input = ''
+time_input = None
+flag_gesture_input = False # use this flag to identify if there was an input from CV in past duration
 
 
 def send_data(jsonfilename, client, clientinput, state):
@@ -82,9 +85,23 @@ def main_job(e):
         e.clear()
 
 
+def flag_check(event):
+    global time_input
+    global flag_gesture_input
+    duration = 1.0
+    while True:
+        event_is_set = event.wait()
+        flag_gesture_input = True
+        while flag_gesture_input:
+            current_time = time()
+            if current_time - time_input > duration:
+                flag_gesture_input = False
+        event.clear()
+
+
 def init_NLP():
     # establishing connection
-    SERVER = "101.53.235.104"
+    SERVER = "127.0.0.1"
     PORT = 10005
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((SERVER, PORT))
@@ -97,14 +114,29 @@ def close_NLP(client):
 
 if __name__ == '__main__':
     client = init_NLP()
+    client.sendall(bytes('NLP', 'UTF-8'))
+    status = client.recv(1024)
+    print(status.decode())
     e = Event()
+    cv_event = Event()
     work = Thread(target=main_job, args=(e,))
+    CV_Input = Thread(target=flag_check, args=(cv_event,))
     work.start()
+    CV_Input.start()
 
     while True:
+        server_input = client.recv(1025)
 
-        data = client.recv(1025)
-
-        blender_input = data.decode()
-        if blender_input.upper() == 'START':
-            e.set()
+        server_input = server_input.decode()
+        print(server_input)
+        if server_input.upper() == 'UPDATE_STATE':
+            data = client.recv(1025)
+            decoded = data.decode()
+            if decoded.upper() == 'START':
+                e.set()
+        elif server_input.upper() == 'CV_INPUT':
+            posture_input = client.recv(1025)
+            posture_input = posture_input.decode()
+            print(posture_input)
+            time_input = time()
+            cv_event.set()

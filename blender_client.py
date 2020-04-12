@@ -4,6 +4,7 @@ import json
 
 # Initially Idle state
 global current_state
+coord = [] # first position is x and the second is y
 
 
 def send_data(jsonfilename, client, clientinput, state):
@@ -52,7 +53,7 @@ def send_message(input_msg):
 
 def init_NLP():
     # establishing connection
-    SERVER = "101.53.235.104"
+    SERVER = "127.0.0.1"
     PORT = 10005
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((SERVER, PORT))
@@ -69,9 +70,18 @@ class ClientThread(threading.Thread):
         global current_state
         # Recieve from server
         client.sendall(bytes('BLENDER', 'UTF-8'))
+        global coord
         while True:
-            state = client.recv(1043)
-            current_state = int.from_bytes(state, byteorder='big')
+            server_input = client.recv(1043)
+            if server_input.upper() == 'UPDATE_STATE':
+                state = client.recv(1043)
+                current_state = int.from_bytes(state, byteorder='big')
+            elif server_input.upper() == 'CV_INPUT':
+                coords_input = client.recv(1025)
+                coord = [x for x in coords_input]
+                print(coord)
+
+
 
 
 
@@ -95,7 +105,9 @@ if __name__ == '__main__':
     global current_state
     current_state= 0
     client = init_NLP()
-
+    client.sendall(bytes('BlENDER', 'UTF-8'))
+    status = client.recv(1024)
+    print(status.decode())
     # To get state from server without blocking the main program
     newthread = ClientThread(client)
     newthread.start()

@@ -5,15 +5,13 @@ import time
 
 
 #global variables
-global coord_one
-global coord_two
-global user_input
+coord_one = 0
+coord_two = 0
+user_input = ''
 
 def init_CV():
     # assigning default values to coordinates
-    coord_one = 0
-    coord_two = 0
-    user_input = ""
+
 
     # establishing connection
     SERVER = "127.0.0.1"
@@ -37,7 +35,7 @@ class global_send(threading.Thread):
         while True:
             clientinput="GLOBAL"
             #Signally that this is the global data
-            client.sendall(bytes(clientinput, 'UTF-8'))
+            self.client.sendall(bytes(clientinput, 'UTF-8'))
             #sending coord_one
             self.client.sendall((int(coord_one).to_bytes(2, byteorder='big')))
             #sending coord two
@@ -67,7 +65,9 @@ if __name__ == '__main__':
 
     # intialising client
     client = init_CV()
-
+    client.sendall(bytes('CV', 'UTF-8'))
+    status = client.recv(1024)
+    print(status.decode())
     # making a thread for each task
     global_thread = global_send(client)
     userinp_thread = userinput_send(client)
