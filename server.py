@@ -12,7 +12,8 @@ Condition1 = Condition()
 Condition2 = Condition()
 Condition3 = Condition()
 Condition4 = Condition()
-
+blender_clinet = None
+NLP_client = None
 
 class nlpThreadlisten(threading.Thread):
     def __init__(self, clientAddress, clientsocket):
@@ -34,6 +35,8 @@ class nlpThreadlisten(threading.Thread):
             elif client_message == 'SEND_JSON':
                 # server receive
                 data = self.csocket.recv(2048)
+                blender_clinet.sendall(bytes('SEND_JSON', 'UTF-8'))
+                blender_clinet.sendall(data)
                 print("data from client", data)
                 state = self.csocket.recv(2048)
                 print("state from client", state)
@@ -42,9 +45,11 @@ class nlpThreadlisten(threading.Thread):
                 print('here')
             elif client_message == 'SEND_WAV':
                 # server receives wav file
+                blender_clinet.sendall(bytes('SEND_JSON', 'UTF-8'))
                 with open('rcvd_file.wav', 'wb') as f:
                     while True:
                         l = self.csocket.recv(2048);
+                        blender_clinet.send(l)
                         if l == bytes('end', 'UTF-8'): break
                         f.write(l)
                     print("Wav file received")
@@ -100,6 +105,44 @@ class Threadsend(threading.Thread):
                 print(self.purpose)
                 print(self.message)
                 self.csocket.sendall(self.message)
+class nlpThreadsend(threading.Thread):
+    def __init__(self, clientAddress, clientsocket):
+        threading.Thread.__init__(self)
+        self.csocket = clientsocket
+        self.caddress = clientAddress
+        print("New connection added: ", clientAddress)
+    global nlp_state
+    def run(self):
+        print("Connection from : ", self.caddress)
+
+        global state_update
+        global nlp_state
+        global Condition2
+        while True:
+            with Condition2:
+                Condition2.wait()
+                self.csocket.sendall(bytes('Update_state', 'UTF-8'))
+                self.csocket.sendall(nlp_state)
+
+class blenderThreadsend(threading.Thread):
+    def __init__(self, clientAddress, clientsocket):
+        threading.Thread.__init__(self)
+        self.csocket = clientsocket
+        self.caddress = clientAddress
+        print("New connection added: ", clientAddress)
+    global blender_state
+    def run(self):
+        print("Connection from : ", self.caddress)
+        global Condition1
+        global state_update
+        global blender_state
+        while True:
+            with Condition1:
+                Condition1.wait()
+                self.csocket.sendall(bytes('Update_state', 'UTF-8'))
+                self.csocket.sendall(blender_state)
+
+
 
 
 class blenderThreadlisten(threading.Thread):
@@ -120,6 +163,7 @@ class blenderThreadlisten(threading.Thread):
             Condition2.acquire()
             try:
                 nlp_state = client_message
+                print(nlp_state)
                 Condition2.notify()
             finally:
                 Condition2.release()
@@ -175,24 +219,28 @@ def initialize_threads(thread_type, clientAddress, clientsock):
     global blender_state
     global Cv_blender
     global Cv_nlp
+    global blender_clinet
+    global NLP_client
     thread_type = thread_type.decode()
 
     if thread_type.upper() == 'NLP':
         nlp = nlpThreadlisten(clientAddress, clientsock)
-        nlp2 = Threadsend(clientAddress, clientsock, Condition2, nlp_state, 'Update_state')
-        nlp3 = Threadsend(clientAddress, clientsock, Condition3, Cv_nlp, 'CV_Input')
+        nlp2 = nlpThreadsend(clientAddress, clientsock)
+        #nlp3 = Threadsend(clientAddress, clientsock, Condition3, Cv_nlp, 'CV_Input')
         nlp.start()
         nlp2.start()
-        nlp3.start()
+        #nlp3.start()
+        NLP_client = clientsock
 
     elif thread_type.upper() == 'BLENDER':
 
-        blender = Threadsend(clientAddress, clientsock, Condition1, blender_state , 'Update_state')
+        blender = blenderThreadsend(clientAddress, clientsock)
         blender2 = blenderThreadlisten(clientAddress, clientsock)
-        blender3 = Threadsend(clientAddress, clientsock, Condition4, Cv_blender, 'CV_Input')
+        #blender3 = Threadsend(clientAddress, clientsock, Condition4, Cv_blender, 'CV_Input')
         blender.start()
         blender2.start()
-        blender3.start()
+        #blender3.start()
+        blender_clinet = clientsock
 
     elif thread_type.upper() == 'CV':
         CV = CVThreadlisten(clientAddress, clientsock)
@@ -203,7 +251,7 @@ def initialize_threads(thread_type, clientAddress, clientsock):
 
 
 def init_server():
-    LOCALHOST = "127.0.0.1"
+    LOCALHOST = '127.0.0.1'
     PORT = 10005
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
