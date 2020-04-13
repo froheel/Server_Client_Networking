@@ -69,11 +69,12 @@ class ClientThread(threading.Thread):
     def run(self):
         global current_state
         # Recieve from server
-        client.sendall(bytes('BLENDER', 'UTF-8'))
         global coord
         msg = 'transferred'
         while True:
             server_input = client.recv(1043)
+            server_input = server_input.decode()
+            print(server_input)
             if server_input.upper() == 'UPDATE_STATE':
                 state = client.recv(1043)
                 current_state = int.from_bytes(state, byteorder='big')
@@ -83,19 +84,19 @@ class ClientThread(threading.Thread):
                 print(coord)
             elif server_input.upper() == 'SEND_JSON':
                 # server receive
-                data = self.csocket.recv(2048)
+                data = self.client.recv(2048)
 
                 print("data from client", data)
                 state = self.csocket.recv(2048)
                 print("state from client", state)
-                self.csocket.send(bytes(msg, 'UTF-8'))
-                self.csocket.send(bytes(msg, 'UTF-8'))
+                self.client.send(bytes(msg, 'UTF-8'))
+                self.client.send(bytes(msg, 'UTF-8'))
                 print('here')
             elif server_input.upper() == 'SEND_WAV':
                 # server receives wav file
                 with open('rcvd_file.wav', 'wb') as f:
                     while True:
-                        l = self.csocket.recv(2048);
+                        l = self.client.recv(2048);
                         if l == bytes('end', 'UTF-8'): break
                         f.write(l)
                     print("Wav file received")
@@ -106,11 +107,10 @@ class ClientThread(threading.Thread):
                 state = 'THINKING'
                 data = json.load(open('data.json'))
                 # sending state and json data
-                self.csocket.send(bytes(json.dumps(data), 'UTF-8'))
-                self.csocket.sendall(bytes(state, 'UTF-8'))
+                self.client.send(bytes(json.dumps(data), 'UTF-8'))
+                self.client.sendall(bytes(state, 'UTF-8'))
                 # receiving confirmation that data has been sent
-                in_data = self.csocket.recv(2048)
-                print("From Client ", self.caddress, " : ", in_data.decode())
+                in_data = self.client.recv(2048)
 
 
 
@@ -145,15 +145,15 @@ if __name__ == '__main__':
     nlp_control.start()
     while True:
         if current_state == 0:
-            #print("Idle State")
+            print("Idle State")
             #do something
             a = 0
         elif current_state == 1:
-            #print("Listening State")
+            print("Listening State")
             # do something
             a = 0
         elif current_state == 2:
-            #print("Thinking State")
+            print("Thinking State")
             # do something
             a = 0
         elif current_state == 3:
@@ -161,6 +161,6 @@ if __name__ == '__main__':
             # do something
             a = 0
         else:
-            #print("Invalid State")
+            print("Invalid State")
             # do something
             a = 0

@@ -20,7 +20,7 @@ def send_data(jsonfilename, client, clientinput, state):
     data = json.load(open(jsonfilename))
 
     # sending state and json data
-    client.send(bytes(json.dumps(data), 'UTF-8'))
+    client.sendall(bytes(json.dumps(data), 'UTF-8'))
     client.sendall(bytes(state, 'UTF-8'))
 
     # receiving confirmation that data has been sent

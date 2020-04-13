@@ -30,29 +30,31 @@ class nlpThreadlisten(threading.Thread):
             # instruction from client
             client_message = self.csocket.recv(2048)
             client_message = client_message.decode()
+            print('nlp')
+            print(client_message)
             if client_message == 'DISCONNECT':
                 break
-            elif client_message == 'SEND_JSON':
+            elif client_message.upper() == 'SEND_JSON':
                 # server receive
                 data = self.csocket.recv(2048)
                 blender_clinet.sendall(bytes('SEND_JSON', 'UTF-8'))
                 blender_clinet.sendall(data)
                 print("data from client", data)
-                state = self.csocket.recv(2048)
-                print("state from client", state)
-                self.csocket.send(bytes(msg, 'UTF-8'))
-                self.csocket.send(bytes(msg, 'UTF-8'))
+                # state = self.csocket.recv(2048)
+                # print("state from client", state)
+                self.csocket.sendall(bytes(msg, 'UTF-8'))
                 print('here')
-            elif client_message == 'SEND_WAV':
+            elif client_message.upper() == 'SEND_WAV':
                 # server receives wav file
-                blender_clinet.sendall(bytes('SEND_JSON', 'UTF-8'))
+                blender_clinet.sendall(bytes('SEND_WAV', 'UTF-8'))
                 with open('rcvd_file.wav', 'wb') as f:
                     while True:
                         l = self.csocket.recv(2048);
-                        blender_clinet.send(l)
+                        blender_clinet.sendall(l)
                         if l == bytes('end', 'UTF-8'): break
                         f.write(l)
                     print("Wav file received")
+                    self.csocket.sendall(bytes(msg, 'UTF-8'))
                     f.close()
 
             elif client_message == 'RECEIVE':
@@ -69,7 +71,8 @@ class nlpThreadlisten(threading.Thread):
             elif client_message == "Update_State":
                 # send updated state
                 client_message = self.csocket.recv(2048)
-
+                print('nlp')
+                print(client_message)
                 # send state to the client
                 global blender_state
                 global Condition1
@@ -140,6 +143,8 @@ class blenderThreadsend(threading.Thread):
             with Condition1:
                 Condition1.wait()
                 self.csocket.sendall(bytes('Update_state', 'UTF-8'))
+                print('blender')
+                print(blender_state)
                 self.csocket.sendall(blender_state)
 
 
@@ -251,7 +256,7 @@ def initialize_threads(thread_type, clientAddress, clientsock):
 
 
 def init_server():
-    LOCALHOST = '127.0.0.1'
+    LOCALHOST = '192.168.100.88'
     PORT = 10005
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
