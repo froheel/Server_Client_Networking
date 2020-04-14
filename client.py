@@ -35,10 +35,11 @@ def send_wav_data(wavfilename, client, clientinput):
     client.sendall(bytes(clientinput, 'UTF-8'))
     sizu = os.path.getsize(wavfilename)
     print(sizu)
+    file_size_b = sizu.to_bytes(4, 'big')
     sent = 0
     counter = 0
     # loading and sending from wav file
-
+    client.sendall(file_size_b)
     #client.sendall(int(sizu).to_bytes(2, byteorder='big'))
     with open(wavfilename, 'rb') as f:
         for l in f:
@@ -50,6 +51,8 @@ def send_wav_data(wavfilename, client, clientinput):
         f.close()
     client.sendall(bytes('end','UTF-8'))    # this is the termination bytes
         # client.sendall(bytes('end', 'UTF-8'))
+    in_data = client.recv(1024)
+    print("From Server :", in_data.decode())
 
 
 def client_receive(client, clientinput):

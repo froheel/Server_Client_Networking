@@ -2,6 +2,7 @@ import socket
 import threading
 from threading import Condition
 import json
+import time
 import wave
 
 blender_state = None
@@ -47,28 +48,32 @@ class nlpThreadlisten(threading.Thread):
             elif client_message.upper() == 'SEND_WAV':
                 # server receives wav file
                 blender_clinet.sendall(bytes('SEND_WAV', 'UTF-8'))
-                # b_len = self.csocket.recv(1043)
-                # length = int.from_bytes(b_len, byteorder='big')
-                # print(length)
+                b_len = self.csocket.recv(1043)
+                blender_clinet.sendall(b_len)
+                print(blender_clinet.recv(1550).decode())
+                #gets stuck after this
+
+                #time.sleep(100)
+                length = int.from_bytes(b_len, byteorder='big')
+                print(length)
                 counter = 0
                 with open('server_rcvd_file.wav', 'wb') as f:
-                    counter = 0
-                    while True:
+                    while counter <= length:
                         l = self.csocket.recv(2048);
+                        counter+= len(l)
                         #counter += l.size()
                         #print(counter)
                         blender_clinet.send(l)      #forwards to blender client
-                        counter += 1
                         f.write(l)
                         #this one works
-                        if l == bytes('end', 'UTF-8'):  #it works here
-                            break
+                        #if l == bytes('end', 'UTF-8'): break
                 print(counter)
                 f.close()
-                blender_clinet.sendall(bytes('end','UTF-8'))
-
-                print("Wav file received")
                 self.csocket.sendall(bytes(msg, 'UTF-8'))
+                response = blender_clinet.recv(1550)
+                print(response.decode())
+                print("Wav file received")
+
 
 
             elif client_message == 'RECEIVE':
@@ -183,7 +188,8 @@ class blenderThreadlisten(threading.Thread):
             try:
                 nlp_state = client_message
                 print(nlp_state)
-                Condition2.notify()
+                if nlp_state== b'start':
+                    Condition2.notify()
             finally:
                 Condition2.release()
 

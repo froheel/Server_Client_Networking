@@ -87,26 +87,35 @@ class ClientThread(threading.Thread):
                 data = self.client.recv(2048)
 
                 print("data from client", data)
-                state = self.csocket.recv(2048)
+                state = self.client.recv(2048)
                 print("state from client", state)
                 self.client.send(bytes(msg, 'UTF-8'))
                 self.client.send(bytes(msg, 'UTF-8'))
                 print('here')
             elif server_input.upper() == 'SEND_WAV':
                 # server receives wav file
+                b_len = self.client.recv(2049)
+                length = int.from_bytes(b_len, byteorder='big')
+                client.sendall((bytes('got it', 'UTF-8')))
+                client.sendall((bytes('got it', 'UTF-8')))
+                print(length)
+                counter = 0
                 with open('rcvd_file.wav', 'wb') as f:
-                    while True:
+                    while counter <= length:
                         l = self.client.recv(2048);
+                        counter+= len(l)
                         #yes indeed we have defined ourselves
                         # The problem is that it works at one point but doesn't work at another point
                         #this one does not work                 # Thank you sir , will also try closing the connection and checking it out
                                                                 # WIll do thank you 
-                        if l == bytes('end', 'UTF-8'):break     #is there a way to clear tcp send buffer ?
-                        p = int.from_bytes(l, byteorder='big')
-                        print(l, end= '\n')
+                        #if l == bytes('end', 'UTF-8'):break     #is there a way to clear tcp send buffer ?
+                        #p = int.from_bytes(l, byteorder='big')
+                        #print(l, end= '\n')
                         f.write(l)
 
                     f.close()
+                    client.sendall(bytes(msg, 'UTF-8'))
+                    client.sendall(bytes(msg, 'UTF-8'))
                     print("Wav file received")
 
             elif server_input.upper() == 'RECEIVE':
