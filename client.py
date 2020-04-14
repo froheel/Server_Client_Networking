@@ -3,13 +3,14 @@ import json
 import wave
 from threading import Thread, Event
 from time import time
+import os
 
 wait = False
 
 out_data = ''
 posture_input = ''
 time_input = None
-flag_gesture_input = False # use this flag to identify if there was an input from CV in past duration
+flag_gesture_input = False  # use this flag to identify if there was an input from CV in past duration
 
 
 def send_data(jsonfilename, client, clientinput, state):
@@ -32,13 +33,23 @@ def send_data(jsonfilename, client, clientinput, state):
 def send_wav_data(wavfilename, client, clientinput):
     # sending input to server (ie DISCONNECT)
     client.sendall(bytes(clientinput, 'UTF-8'))
-
+    sizu = os.path.getsize(wavfilename)
+    print(sizu)
+    sent = 0
+    counter = 0
     # loading and sending from wav file
+
+    #client.sendall(int(sizu).to_bytes(2, byteorder='big'))
     with open(wavfilename, 'rb') as f:
         for l in f:
-            client.sendall(l)
+            sent += client.send(l)
+            counter += 1
+        print(counter)
+
+
         f.close()
-        client.sendall(bytes('end', 'UTF-8'))
+    client.sendall(bytes('end','UTF-8'))    # this is the termination bytes
+        # client.sendall(bytes('end', 'UTF-8'))
 
 
 def client_receive(client, clientinput):

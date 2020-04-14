@@ -97,10 +97,17 @@ class ClientThread(threading.Thread):
                 with open('rcvd_file.wav', 'wb') as f:
                     while True:
                         l = self.client.recv(2048);
-                        if l == bytes('end', 'UTF-8'): break
+                        #yes indeed we have defined ourselves
+                        # The problem is that it works at one point but doesn't work at another point
+                        #this one does not work                 # Thank you sir , will also try closing the connection and checking it out
+                                                                # WIll do thank you 
+                        if l == bytes('end', 'UTF-8'):break     #is there a way to clear tcp send buffer ?
+                        p = int.from_bytes(l, byteorder='big')
+                        print(l, end= '\n')
                         f.write(l)
-                    print("Wav file received")
+
                     f.close()
+                    print("Wav file received")
 
             elif server_input.upper() == 'RECEIVE':
                 # loading data from file and reading state
@@ -145,15 +152,15 @@ if __name__ == '__main__':
     nlp_control.start()
     while True:
         if current_state == 0:
-            print("Idle State")
+            #print("Idle State")
             #do something
             a = 0
         elif current_state == 1:
-            print("Listening State")
+            #print("Listening State")
             # do something
             a = 0
         elif current_state == 2:
-            print("Thinking State")
+            #print("Thinking State")
             # do something
             a = 0
         elif current_state == 3:
@@ -161,6 +168,6 @@ if __name__ == '__main__':
             # do something
             a = 0
         else:
-            print("Invalid State")
+            #print("Invalid State")
             # do something
             a = 0

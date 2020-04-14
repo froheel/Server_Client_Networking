@@ -47,15 +47,29 @@ class nlpThreadlisten(threading.Thread):
             elif client_message.upper() == 'SEND_WAV':
                 # server receives wav file
                 blender_clinet.sendall(bytes('SEND_WAV', 'UTF-8'))
-                with open('rcvd_file.wav', 'wb') as f:
+                # b_len = self.csocket.recv(1043)
+                # length = int.from_bytes(b_len, byteorder='big')
+                # print(length)
+                counter = 0
+                with open('server_rcvd_file.wav', 'wb') as f:
+                    counter = 0
                     while True:
                         l = self.csocket.recv(2048);
-                        blender_clinet.sendall(l)
-                        if l == bytes('end', 'UTF-8'): break
+                        #counter += l.size()
+                        #print(counter)
+                        blender_clinet.send(l)      #forwards to blender client
+                        counter += 1
                         f.write(l)
-                    print("Wav file received")
-                    self.csocket.sendall(bytes(msg, 'UTF-8'))
-                    f.close()
+                        #this one works
+                        if l == bytes('end', 'UTF-8'):  #it works here
+                            break
+                print(counter)
+                f.close()
+                blender_clinet.sendall(bytes('end','UTF-8'))
+
+                print("Wav file received")
+                self.csocket.sendall(bytes(msg, 'UTF-8'))
+
 
             elif client_message == 'RECEIVE':
                 # loading data from file and reading state
@@ -256,7 +270,7 @@ def initialize_threads(thread_type, clientAddress, clientsock):
 
 
 def init_server():
-    LOCALHOST = '192.168.100.88'
+    LOCALHOST = '127.0.0.1'
     PORT = 10005
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
