@@ -49,13 +49,16 @@ class nlpThreadlisten(threading.Thread):
                 # server receives wav file
                 blender_clinet.sendall(bytes('SEND_WAV', 'UTF-8'))
                 b_len = self.csocket.recv(1043)
+                length = int.from_bytes(b_len, byteorder='big')
+                print(length)
+                self.csocket.sendall(bytes('hello there', 'UTF-8'))
+                self.csocket.sendall(bytes('hello there', 'UTF-8'))
                 blender_clinet.sendall(b_len)
                 print(blender_clinet.recv(1550).decode())
                 #gets stuck after this
 
                 #time.sleep(100)
-                length = int.from_bytes(b_len, byteorder='big')
-                print(length)
+
                 counter = 0
                 with open('server_rcvd_file.wav', 'wb') as f:
                     while counter <= length:
@@ -276,7 +279,7 @@ def initialize_threads(thread_type, clientAddress, clientsock):
 
 
 def init_server():
-    LOCALHOST = '127.0.0.1'
+    LOCALHOST = '192.168.100.88'
     PORT = 10005
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
