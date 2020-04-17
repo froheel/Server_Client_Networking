@@ -40,8 +40,8 @@ def global_send(client):
             coord_one = random.randint(0,(precision * 2) + 1 )
             coord_two = random.randint(0, (precision * 2) + 1)
             #Signally that this is the global data
-            client.sendall(bytes(clientinput, 'UTF-8'))
-            client.recv(2048).decode()
+            # client.sendall(bytes(clientinput, 'UTF-8'))
+            # client.recv(2048).decode()
             #sending coord_one
             client.sendall((int(coord_one).to_bytes(4, byteorder='big')))
             client.recv(2048).decode()

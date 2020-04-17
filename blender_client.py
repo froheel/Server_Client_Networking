@@ -138,24 +138,7 @@ class ClientThread(threading.Thread):
 
 
 
-def init_NLP_2(shared_memory):
-    # establishing connection
-    print('I have been started')
-    SERVER = "127.0.0.1"
-    PORT = 10010
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect((SERVER, PORT))
-    precision = 10000
 
-    while True:
-        x = client.recv(2048)
-        client.sendall(bytes('got x', 'UTF-8'))
-        y = socket.recv(2048)
-        client.sendall(bytes('got y ', 'UTF-8'))
-        shared_memory[1] = (int.from_bytes(x, byteorder='big') - precision) / precision
-        shared_memory[2] = (int.from_bytes(x, byteorder='big') - precision) / precision
-        shared_memory[0] = True
-        print(shared_memory)
 
 def start_nlp(client):
     while True:
@@ -167,9 +150,9 @@ def check_coords(shared_memory):
         try:
             if shared_memory[0]:
                 #do something
-                print('updating')
+                #print('updating')
                 shared_memory[0] = False
-                print(shared_memory)
+                #print(shared_memory)
         except ValueError:
             print('awwww shiet, we try agen')
 
@@ -200,22 +183,30 @@ if __name__ == '__main__':
     #cv_update.start()
     while True:
         if current_state == 0:
-            #print("Idle State")
+            print("Idle State")
             #do something
             a = 0
         elif current_state == 1:
-            #print("Listening State")
+            print("Listening State")
             # do something
             a = 0
         elif current_state == 2:
-            #print("Thinking State")
+            print("Thinking State")
             # do something
             a = 0
         elif current_state == 3:
-            #print("Speaking State")
+            print("Speaking State")
+            # do something
+            a = 0
+        elif current_state == 4:
+            print('Reading state')
+            # do something
+            a = 0
+        elif current_state == 5:
+            print('another state')
             # do something
             a = 0
         else:
-            #print("Invalid State")
+            print("Invalid State")
             # do something
             a = 0

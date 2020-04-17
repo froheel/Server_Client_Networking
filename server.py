@@ -240,11 +240,20 @@ class CVThreadlisten(threading.Thread):
 
 def send_nlp_cv(client):
     global NLP_client
+    global blender_clinet
     while True:
         msg = client.recv(2056)
         print(msg)
-        NLP_client.sendall(bytes('cv_input', 'UTF-8'))
-        NLP_client.sendall(msg)
+        if msg == bytes('nlp', 'UTF-8'):
+            client.sendall(bytes('got it', 'UTF-8'))
+            msg = client.recv(2056)
+            NLP_client.sendall(bytes('cv_input', 'UTF-8'))
+            NLP_client.sendall(msg)
+        elif msg == bytes('cv', 'UTF-8'):
+            client.sendall(bytes('got it', 'UTF-8'))
+            msg = client.recv(2056)
+            blender_clinet.sendall(bytes('update_state', 'UTF-8'))
+            blender_clinet.sendall(msg)
 
 def initialize_threads(thread_type, clientAddress, clientsock):
     rcv = 'Recived'
