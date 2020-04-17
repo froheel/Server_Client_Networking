@@ -96,6 +96,7 @@ def main_job(e):
             client.sendall((int(inp).to_bytes(2, byteorder='big')))
         elif out_data == 'RECEIVE':
             data, state = client_receive(client, out_data)
+        e.set()
         e.clear()
 
 

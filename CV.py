@@ -2,6 +2,7 @@
 import socket
 import threading
 import time
+import random
 
 
 #global variables
@@ -24,41 +25,30 @@ def close_CV(client):
     client.close()
 
 
-class global_send(threading.Thread):
-    def __init__(self, client):
-        threading.Thread.__init__(self)
-        self.client = client
-    def run(self):
-
+# class global_send(threading.Thread):
+#     def __init__(self, client):
+#         threading.Thread.__init__(self)
+#         self.client = client
+#     def run(self):
+def global_send(client):
         global coord_one
         global coord_two
         while True:
             clientinput="GLOBAL"
+            precision = 10000
+            # for translation multiply with precision and then add precision
+            coord_one = random.randint(0,(precision * 2) + 1 )
+            coord_two = random.randint(0, (precision * 2) + 1)
             #Signally that this is the global data
-            self.client.sendall(bytes(clientinput, 'UTF-8'))
+            client.sendall(bytes(clientinput, 'UTF-8'))
+            client.recv(2048).decode()
             #sending coord_one
-            self.client.sendall((int(coord_one).to_bytes(2, byteorder='big')))
+            client.sendall((int(coord_one).to_bytes(4, byteorder='big')))
+            client.recv(2048).decode()
             #sending coord two
-            self.client.sendall((int(coord_one).to_bytes(2, byteorder='big')))
+            client.sendall((int(coord_one).to_bytes(4, byteorder='big')))
+            client.recv(2048).decode()
             #send data after every 0.5 seconds
-            time.sleep(0.5)
-
-class userinput_send(threading.Thread):
-    def __init__(self, client):
-        threading.Thread.__init__(self)
-        self.client = client
-
-    def run(self):
-
-        global user_input
-        while True:
-            #Signally that this is the global data
-            client_input= "INPUT"
-            client.sendall(bytes(client_input, 'UTF-8'))
-            #taking input from the user and sending it
-            user_input = input("Input your data: ")
-            client.sendall(bytes(user_input, 'UTF-8'))
-
 
 
 if __name__ == '__main__':
@@ -69,13 +59,7 @@ if __name__ == '__main__':
     status = client.recv(1024)
     print(status.decode())
     # making a thread for each task
-    global_thread = global_send(client)
-    userinp_thread = userinput_send(client)
-    global_thread.start()
-    userinp_thread.start()
+    global_send(client)
 
-    # signal that CV has been started
-    c_input = "INPUT"
-    client.sendall(bytes(c_input, 'UTF-8'))
 
 

@@ -1,7 +1,9 @@
 import socket
 import threading
 import json
-
+from multiprocessing import shared_memory
+import _multiprocessing
+from multiprocessing import Process
 # Initially Idle state
 global current_state
 coord = [] # first position is x and the second is y
@@ -53,11 +55,13 @@ def send_message(input_msg):
 
 def init_NLP():
     # establishing connection
-    SERVER = "196.194.235.248"
+    SERVER = "127.0.0.1"
     PORT = 10005
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((SERVER, PORT))
     return client
+
+
 
 def close_NLP(client):
     client.close()
@@ -72,9 +76,11 @@ class ClientThread(threading.Thread):
         global coord
         msg = 'transferred'
         while True:
+            server_input = ''
             server_input = client.recv(1043)
-            server_input = server_input.decode()
             print(server_input)
+            server_input = server_input.decode()
+
             if server_input.upper() == 'UPDATE_STATE':
                 state = client.recv(1043)
                 current_state = int.from_bytes(state, byteorder='big')
@@ -104,13 +110,6 @@ class ClientThread(threading.Thread):
                     while counter <= length:
                         l = self.client.recv(2048);
                         counter+= len(l)
-                        #yes indeed we have defined ourselves
-                        # The problem is that it works at one point but doesn't work at another point
-                        #this one does not work                 # Thank you sir , will also try closing the connection and checking it out
-                                                                # WIll do thank you 
-                        #if l == bytes('end', 'UTF-8'):break     #is there a way to clear tcp send buffer ?
-                        #p = int.from_bytes(l, byteorder='big')
-                        #print(l, end= '\n')
                         f.write(l)
 
                     f.close()
@@ -137,11 +136,43 @@ class ClientThread(threading.Thread):
 #state 3 ---> Speaking
 
 
+
+
+def init_NLP_2(shared_memory):
+    # establishing connection
+    print('I have been started')
+    SERVER = "127.0.0.1"
+    PORT = 10010
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect((SERVER, PORT))
+    precision = 10000
+
+    while True:
+        x = client.recv(2048)
+        client.sendall(bytes('got x', 'UTF-8'))
+        y = socket.recv(2048)
+        client.sendall(bytes('got y ', 'UTF-8'))
+        shared_memory[1] = (int.from_bytes(x, byteorder='big') - precision) / precision
+        shared_memory[2] = (int.from_bytes(x, byteorder='big') - precision) / precision
+        shared_memory[0] = True
+        print(shared_memory)
+
 def start_nlp(client):
     while True:
         print("nlp_Start")
         input("press enter to start nlp")
         client.sendall(bytes('start', 'UTF-8'))
+def check_coords(shared_memory):
+    while True:
+        try:
+            if shared_memory[0]:
+                #do something
+                print('updating')
+                shared_memory[0] = False
+                print(shared_memory)
+        except ValueError:
+            print('awwww shiet, we try agen')
+
 
 
 #main program
@@ -154,11 +185,19 @@ if __name__ == '__main__':
     client.sendall(bytes('BlENDER', 'UTF-8'))
     status = client.recv(1024)
     print(status.decode())
+
+    location = shared_memory.ShareableList([False, 0, 0], name='coords') # updated, x , y
+    #cv_client = Process(target=init_NLP_2, args=(location,))
+    #cv_client.start()
+    update_coord = threading.Thread(target=check_coords, args=(location,))
+    # cv_update = threading.Thread(target=recv_cords, args=(client,))
     # To get state from server without blocking the main program
     newthread = ClientThread(client)
     newthread.start()
     nlp_control = threading.Thread(target=start_nlp, args=(client, ))
     nlp_control.start()
+    update_coord.start()
+    #cv_update.start()
     while True:
         if current_state == 0:
             #print("Idle State")
