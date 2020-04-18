@@ -230,7 +230,7 @@ class CVThreadlisten(threading.Thread):
                 self.csocket.sendall(bytes('got y', 'UTF-8'))
                 blender_client_CV.sendall(y)
                 blender_client_CV.recv(2048).decode()
-
+                #print(x, y)
             # elif client_message.upper() == 'INPUT':
             #     ui = self.csocket.recv(4096)
             #     NLP_client.sendall(bytes('CV_input', 'UTF-8'))

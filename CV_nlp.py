@@ -8,7 +8,7 @@ def init_CV_NLP():
 
 
     # establishing connection
-    SERVER = "127.0.0.1"
+    SERVER = "196.194.235.248"
     PORT = 10005
     client = socket(AF_INET, SOCK_STREAM)
     client.connect((SERVER, PORT))

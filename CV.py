@@ -15,7 +15,7 @@ def init_CV():
 
 
     # establishing connection
-    SERVER = "127.0.0.1"
+    SERVER = "196.194.235.248"
     PORT = 10005
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((SERVER, PORT))

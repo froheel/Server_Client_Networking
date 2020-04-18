@@ -4,6 +4,7 @@ import wave
 from threading import Thread, Event
 from time import time
 import os
+import mmap
 
 wait = False
 
@@ -93,6 +94,10 @@ def main_job(e):
             inp = input("Enter state")
             # send state to the client
             send_message('Update_State')
+            with open('states.txt', 'r+b') as f:
+                mm = mmap.mmap(f.fileno(), 0)
+                mm.write(int(inp).to_bytes(4, byteorder='big'))
+                f.close()
             client.sendall((int(inp).to_bytes(2, byteorder='big')))
         elif out_data == 'RECEIVE':
             data, state = client_receive(client, out_data)
@@ -138,6 +143,7 @@ if __name__ == '__main__':
     CV_Input = Thread(target=flag_check, args=(cv_event,))
     work.start()
     CV_Input.start()
+    state = 3
 
     while True:
         server_input = client.recv(1025)

@@ -83,7 +83,7 @@ class ClientThread(threading.Thread):
 
             if server_input.upper() == 'UPDATE_STATE':
                 state = client.recv(1043)
-                current_state = int.from_bytes(state, byteorder='big')
+                #current_state = int.from_bytes(state, byteorder='big')
             elif server_input.upper() == 'CV_INPUT':
                 coords_input = client.recv(1025)
                 coord = [x for x in coords_input]
@@ -170,7 +170,12 @@ def check_coords():
             f.close()
 
 
-
+def check_states():
+    global current_state
+    while True:
+        with open('states.txt', 'r+b')as f:
+            mm = mmap.mmap(f.fileno(), 0)
+            current_state = int.from_bytes(mm[0:4], byteorder='big')
 #main program
 if __name__ == '__main__':
 
@@ -207,6 +212,7 @@ if __name__ == '__main__':
     #cv_client = Process(target=init_NLP_2, args=(location,))
     #cv_client.start()
     update_coord = threading.Thread(target=check_coords, args=())
+    update_state = threading.Thread(target=check_states, args=())
     # cv_update = threading.Thread(target=recv_cords, args=(client,))
     # To get state from server without blocking the main program
     newthread = ClientThread(client)
@@ -214,33 +220,34 @@ if __name__ == '__main__':
     nlp_control = threading.Thread(target=start_nlp, args=(client, ))
     nlp_control.start()
     update_coord.start()
+    update_state.start()
     #cv_update.start()
     while True:
         if current_state == 0:
-           # print("Idle State")
+            print("Idle State")
             #do something
             a = 0
         elif current_state == 1:
-           # print("Listening State")
+            print("Listening State")
             # do something
             a = 0
         elif current_state == 2:
-            #print("Thinking State")
+            print("Thinking State")
             # do something
             a = 0
         elif current_state == 3:
-            #print("Speaking State")
+            print("Speaking State")
             # do something
             a = 0
         elif current_state == 4:
-            #print('Reading state')
+            print('Reading state')
             # do something
             a = 0
         elif current_state == 5:
-            #print('another state')
+            print('another state')
             # do something
             a = 0
         else:
-            #print("Invalid State")
+            print("Invalid State")
             # do something
             a = 0
