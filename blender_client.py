@@ -1,12 +1,12 @@
 import socket
 import threading
 import json
-from multiprocessing import shared_memory
-import _multiprocessing
-from multiprocessing import Process
+#from multiprocessing import shared_memory
+import mmap
+import os
 # Initially Idle state
 global current_state
-coord = [] # first position is x and the second is y
+coord = [None] * 2 # first position is x and the second is y
 
 
 def send_data(jsonfilename, client, clientinput, state):
@@ -130,6 +130,7 @@ class ClientThread(threading.Thread):
 
 
 
+
 #state 0 ---> Idle
 #state 1 ---> Listening
 #state 2 ---> Thinking
@@ -145,16 +146,28 @@ def start_nlp(client):
         print("nlp_Start")
         input("press enter to start nlp")
         client.sendall(bytes('start', 'UTF-8'))
-def check_coords(shared_memory):
+def check_coords():
+    global coord
+    reset = 0
+    precision = 10000
     while True:
+        with open("communicate.txt", "r+b") as f:
+            mm = mmap.mmap(f.fileno(), 0)
         try:
-            if shared_memory[0]:
+            a = mm.read_byte()
+            if a:
                 #do something
                 #print('updating')
-                shared_memory[0] = False
-                #print(shared_memory)
+                mm.seek(0)
+                mm.write(reset.to_bytes(1, byteorder='big'))
+                coord[0] = (int.from_bytes(mm[1:5], byteorder='big') - precision) / precision
+                coord[1] = (int.from_bytes(mm[5:9], byteorder='big') - precision) / precision
+                print("x = {}".format(coord[0]), end='\n')
+                print("y = {} \n".format(coord[1]))
         except ValueError:
             print('awwww shiet, we try agen')
+            a = 0
+            f.close()
 
 
 
@@ -163,16 +176,37 @@ if __name__ == '__main__':
 
     #initialising variables
     global current_state
+    a = 0
+    b = 0
+    set = 0
+    mm = None
+    # with open("communicate.txt", "wb+") as f:
+    #     f.write(set.to_bytes(1, byteorder='big'))
+    #     f.write(a.to_bytes(4, byteorder='big'))
+    #     f.write(b.to_bytes(4, byteorder='big'))
+    #     f.close()
+    # with open("communicate.txt", "r+b") as f:
+    #     mm = mmap.mmap(f.fileno(), 0)
+    #     f.close()
+    # mm = mmap.mmap(-1, 10)
+    # mm.write(set.to_bytes(1, byteorder='big'))
+    # mm.seek(1)
+    # mm.write(a.to_bytes(4, byteorder='big'))
+    # mm.write(b.to_bytes(4, byteorder='big'))
+    # pid = os.fork()
+
+
+
     current_state= 0
     client = init_NLP()
     client.sendall(bytes('BlENDER', 'UTF-8'))
     status = client.recv(1024)
     print(status.decode())
 
-    location = shared_memory.ShareableList([False, 0, 0], name='coords') # updated, x , y
+    #location = shared_memory.ShareableList([False, 0, 0], name='coords') # updated, x , y
     #cv_client = Process(target=init_NLP_2, args=(location,))
     #cv_client.start()
-    update_coord = threading.Thread(target=check_coords, args=(location,))
+    update_coord = threading.Thread(target=check_coords, args=())
     # cv_update = threading.Thread(target=recv_cords, args=(client,))
     # To get state from server without blocking the main program
     newthread = ClientThread(client)
@@ -183,30 +217,30 @@ if __name__ == '__main__':
     #cv_update.start()
     while True:
         if current_state == 0:
-            print("Idle State")
+           # print("Idle State")
             #do something
             a = 0
         elif current_state == 1:
-            print("Listening State")
+           # print("Listening State")
             # do something
             a = 0
         elif current_state == 2:
-            print("Thinking State")
+            #print("Thinking State")
             # do something
             a = 0
         elif current_state == 3:
-            print("Speaking State")
+            #print("Speaking State")
             # do something
             a = 0
         elif current_state == 4:
-            print('Reading state')
+            #print('Reading state')
             # do something
             a = 0
         elif current_state == 5:
-            print('another state')
+            #print('another state')
             # do something
             a = 0
         else:
-            print("Invalid State")
+            #print("Invalid State")
             # do something
             a = 0

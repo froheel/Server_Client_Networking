@@ -1,5 +1,6 @@
 import socket
-from multiprocessing import shared_memory
+import mmap
+#from multiprocessing import shared_memory
 
 
 if __name__ == '__main__':
@@ -9,16 +10,21 @@ if __name__ == '__main__':
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((SERVER, PORT))
     precision = 10000
-    shared_data = shared_memory.ShareableList(name='coords')
+    #shared_data = shared_memory.ShareableList(name='coords')
+    set = 1
     while True:
         x = client.recv(2048)
         client.sendall(bytes('got x', 'UTF-8'))
         y = client.recv(2048)
         client.sendall(bytes('got y ', 'UTF-8'))
-        try:
-            shared_data[1] = (int.from_bytes(x, byteorder='big') - precision) / precision
-            shared_data[2] = (int.from_bytes(x, byteorder='big') - precision) / precision
-            shared_data[0] = True
-            print(shared_data)
-        except ValueError:
-            print('no worries')
+
+        with open("communicate.txt", "r+b") as f:
+            mm = mmap.mmap(f.fileno(), 0)
+            mm.write(set.to_bytes(1, byteorder='big'))
+            mm.write(x)
+            mm.write(y)
+
+            # print(int.from_bytes(mm[1:5], byteorder='big'))
+            # print(int.from_bytes(x, byteorder='big'))
+            f.close()
+
