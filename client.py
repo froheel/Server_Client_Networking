@@ -96,7 +96,7 @@ def main_job(e):
             send_message('Update_State')
             with open('states.txt', 'r+b') as f:
                 mm = mmap.mmap(f.fileno(), 0)
-                mm.write(int(inp).to_bytes(4, byteorder='big'))
+                mm.write(int(inp).to_bytes(1, byteorder='big'))
                 f.close()
             client.sendall((int(inp).to_bytes(2, byteorder='big')))
         elif out_data == 'RECEIVE':
@@ -106,17 +106,17 @@ def main_job(e):
 
 
 def flag_check(event):
-    global time_input
-    global flag_gesture_input
-    duration = 1.0
+    state = 0
     while True:
-        event_is_set = event.wait()
-        flag_gesture_input = True
-        while flag_gesture_input:
-            current_time = time()
-            if current_time - time_input > duration:
-                flag_gesture_input = False
-        event.clear()
+        with open('states.txt', 'r+b')as f:
+            mm = mmap.mmap(f.fileno(), 0)
+            #print(mm[0])
+            #print(mm[1])
+            if mm[1] == 1:
+                event.set()
+                mm.seek(1)
+                mm.write(state.to_bytes(1, byteorder='big'))
+                f.close()
 
 
 def init_NLP():
@@ -140,7 +140,7 @@ if __name__ == '__main__':
     e = Event()
     cv_event = Event()
     work = Thread(target=main_job, args=(e,))
-    CV_Input = Thread(target=flag_check, args=(cv_event,))
+    CV_Input = Thread(target=flag_check, args=(e,))
     work.start()
     CV_Input.start()
     state = 3
@@ -150,14 +150,12 @@ if __name__ == '__main__':
 
         server_input = server_input.decode()
         print(server_input)
-        if server_input.upper() == 'UPDATE_STATE':
-            data = client.recv(1025)
-            decoded = data.decode()
-            if decoded.upper() == 'START':
-                e.set()
-        elif server_input.upper() == 'CV_INPUT':
+        # if server_input.upper() == 'UPDATE_STATE':
+        #     data = client.recv(1025)
+        #     decoded = data.decode()
+        #     if decoded.upper() == 'START':
+        #         e.set()
+        if server_input.upper() == 'CV_INPUT':
             posture_input = client.recv(1025)
             posture_input = posture_input.decode()
             print(posture_input)
-            time_input = time()
-            cv_event.set()

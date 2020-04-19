@@ -9,6 +9,7 @@ if __name__ == '__main__':
     PORT = 10010
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect((SERVER, PORT))
+    print('connection establishded')
     precision = 10000
     #shared_data = shared_memory.ShareableList(name='coords')
     set = 1
@@ -24,7 +25,7 @@ if __name__ == '__main__':
             mm.write(x)
             mm.write(y)
 
-            # print(int.from_bytes(mm[1:5], byteorder='big'))
+            print(int.from_bytes(mm[1:5], byteorder='big'))
             # print(int.from_bytes(x, byteorder='big'))
             f.close()
 
