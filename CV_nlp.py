@@ -62,7 +62,7 @@ def communicate():
         if user_input == 'nlp':
 
             user_input = input("Enter the information that you wish to send")
-            nlp_client.sendall('cv_input')
+            nlp_client.sendall(bytes('cv_input', 'UTF-8'))
             nlp_client.sendall(bytes(user_input, 'UTF-8'))
         elif user_input =='blender':
             # client.sendall(bytes(user_input, 'UTF-8'))
@@ -71,7 +71,8 @@ def communicate():
             # if server_message == bytes('got it', 'UTF-8'):
             user_input  = input("Enter the state ")
             blender_client.sendall(bytes('update_state', 'UTF-8'))
-            blender_client.sendall(int(user_input).to_bytes(2, byteorder='big'))
+            print(int(user_input).to_bytes(1, byteorder='big'))
+            blender_client.sendall(int(user_input).to_bytes(1, byteorder='big'))
         else:
             print('Wrong input ')
 
