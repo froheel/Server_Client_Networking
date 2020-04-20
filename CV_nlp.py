@@ -72,7 +72,7 @@ def communicate():
             user_input  = input("Enter the state ")
             blender_client.sendall(bytes('update_state', 'UTF-8'))
             print(int(user_input).to_bytes(1, byteorder='big'))
-            blender_client.sendall(int(user_input).to_bytes(1, byteorder='big'))
+            blender_client.send(int(user_input).to_bytes(1, byteorder='big'))
         else:
             print('Wrong input ')
 
